@@ -1,0 +1,83 @@
+@import '~flex.box';
+
+@import 'helpers';
+@import 'mixins';
+@import 'element';
+
+html,
+body {
+	font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	margin: 0;
+	overflow: hidden;
+	padding: 0;
+}
+
+body {
+	height: 100%;
+	overflow: auto;
+	position: absolute;
+	width: 100%;
+}
+
+* {
+	box-sizing: border-box;
+	outline: 0;
+}
+
+.loading {
+	> div {
+		background: rgba(255, 255, 255, 0.15) !important;
+	}
+}
+
+.grid {
+	display: grid;
+	grid-gap: 20px;
+	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+
+	@include under-break($break--lg) {
+		grid-template-columns: 1fr 1fr 1fr;
+	}
+
+	@include under-break($break--md) {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	@include under-break($break--sm) {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	@include under-break($break--xs + 1) {
+		grid-template-columns: 1fr;
+	}
+}
+
+//@include under-break($break--sm) {
+//	.responsive-table {
+//		@include responsive-table(
+//			(
+//				1: 'Image',
+//				2: 'Date',
+//			)
+//		);
+//	}
+//}
+
+*::-webkit-scrollbar {
+	height: 9px;
+	width: 9px;
+}
+
+*::-webkit-scrollbar-thumb {
+	background: #e5e7eb;
+	border-radius: 4.5px;
+}
+
+*::-webkit-scrollbar-track {
+	background: transparent;
+	border-radius: 4.5px;
+}
+
+@import 'app';

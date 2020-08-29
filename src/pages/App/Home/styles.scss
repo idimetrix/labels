@@ -1,0 +1,16 @@
+.images {
+	border: 4px solid #26bacd;
+	display: flex;
+
+	.image {
+		height: 300px;
+		width: 300px;
+
+		img {
+			height: 100%;
+			object-fit: cover;
+			outline: 0;
+			width: 100%;
+		}
+	}
+}

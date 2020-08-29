@@ -1,0 +1,28 @@
+<html>
+	<head>
+		<title>Labels</title>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+	</head>
+
+	<body>
+		<script>
+			const socket = io({
+				query: {
+					id: Math.random().toString(36).substr(2, 9),
+				},
+			});
+
+			socket.on('attached', (data) => {
+				console.log('server said attached', data);
+			});
+
+			socket.on('detached', (data) => {
+				console.log('server said detached', data);
+			});
+
+			socket.emit('attach', { id: 1 });
+
+			socket.emit('detach', { id: 2 });
+		</script>
+	</body>
+</html>

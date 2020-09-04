@@ -7,6 +7,7 @@ require('./services/redis');
 
 // app.use('/', require('./routes/index'));
 app.use('/images', require('./routes/images'));
+app.use('/image', require('./routes/image'));
 app.use('/events', require('./routes/events'));
 app.use('/views', require('./routes/views'));
 app.use('/locks', require('./routes/locks'));

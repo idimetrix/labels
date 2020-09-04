@@ -28,7 +28,7 @@ export interface IApiState {
 // --- Image
 
 export interface IImageData {
-	readonly hash: string;
+	readonly file: IFile;
 	readonly position: number;
 }
 

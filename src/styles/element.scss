@@ -1,6 +1,12 @@
-.el-pagination__total {
-	margin-left: 0 !important;
+.el-pagination {
+  padding: 0 !important;
+
+  &__total {
+    margin-left: 0 !important;
+  }
 }
+
+
 
 .el-table .cell {
 	line-height: inherit !important;

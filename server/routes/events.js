@@ -1,4 +1,4 @@
-const _ = require("lodash");
+const _ = require('lodash');
 
 const express = require('express');
 const md5 = require('md5');
@@ -14,17 +14,16 @@ router.get('/', async (req, res, next) => {
 
 	const data = JSON.parse(await redisService.getAsync('events')) || {};
 
-	const keys = Object.keys(data)
-		.filter((key) => !search || key.toLowerCase().indexOf(search) !== -1);
+	const keys = Object.keys(data).filter((key) => !search || key.toLowerCase().indexOf(search) !== -1);
 
-	let objects = keys.map(key => data[key])
+	let objects = keys.map((key) => data[key]);
 
 	switch (order) {
 		case 'ascending':
-      objects = _.orderBy(objects, ['size'], ['asc', 'name']);
+			objects = _.orderBy(objects, ['size'], ['asc', 'name']);
 			break;
 		case 'descending':
-      objects = _.orderBy(objects, ['size'], ['desc', 'name']);
+			objects = _.orderBy(objects, ['size'], ['desc', 'name']);
 			break;
 	}
 

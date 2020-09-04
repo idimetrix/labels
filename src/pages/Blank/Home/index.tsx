@@ -249,7 +249,7 @@ class Home extends Component<IProps, IState> {
 	// --- methods
 
 	private async fetchImage(file: IFile, position: number): Promise<void> {
-		const preview: IFile = (await imageApi({ hash: file.hash, position }))?.data;
+		const preview: IFile = (await imageApi({ file, position }))?.data;
 
 		this.setState({ preview });
 	}
@@ -397,7 +397,7 @@ class Home extends Component<IProps, IState> {
 
 	private renderEvents(): ReactNode {
 		return this.props?.events?.events ? (
-			<Select size="small" value={this.state.event} onChange={(event: string): void => this.setState({ event }, (): void => this.update())}>
+			<Select className="m-l-10" size="small" value={this.state.event} onChange={(event: string): void => this.setState({ event }, (): void => this.update())}>
 				{this.props.events.events.map(
 					(event: IEvent): ReactNode => (
 						<Select.Option key={event.id} label={`${event.name} (${event.size})`} value={event.name} />

@@ -39,27 +39,27 @@ router.get('/', async (req, res, next) => {
 	if (filters && Object.keys(filters).length) {
 		Object.keys(filters).forEach((key) => {
 			if (filters[key]) {
-			  const fn = filters[key].fn || 'eq'
-			  const value = filters[key].value || filters[key]
+				const fn = filters[key].fn || 'eq';
+				const value = filters[key].value || filters[key];
 
-        switch (value) {
-          case 'yes':
-            condition = condition.and().where(key).not()[fn].apply(condition, [].concat(''));
-            break;
-          case 'no':
-            condition = condition.and().where(key)[fn].apply(condition, [].concat(''));
-            break;
-          case 'true':
-            condition = condition.and().where(key).not()[fn].apply(condition, [].concat(true));
-            break;
-          case 'false':
-            condition = condition.and().where(key)[fn].apply(condition, [].concat(false));
-            break;
+				switch (value) {
+					case 'yes':
+						condition = condition.and().where(key).not()[fn].apply(condition, [].concat(''));
+						break;
+					case 'no':
+						condition = condition.and().where(key)[fn].apply(condition, [].concat(''));
+						break;
+					case 'true':
+						condition = condition.and().where(key).not()[fn].apply(condition, [].concat(true));
+						break;
+					case 'false':
+						condition = condition.and().where(key)[fn].apply(condition, [].concat(false));
+						break;
 
-          default:
-            condition = condition.and().where(key)[fn].apply(condition, [].concat(value));
-            break;
-        }
+					default:
+						condition = condition.and().where(key)[fn].apply(condition, [].concat(value));
+						break;
+				}
 			}
 		});
 	}

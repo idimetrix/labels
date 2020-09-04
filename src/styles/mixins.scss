@@ -99,12 +99,12 @@
 	}
 }
 
-@mixin responsive-table($headers) {
-	/deep/ .el-table__header-wrapper {
+@mixin responsive-table($headers, $labels: true) {
+	.el-table__header-wrapper {
 		display: none;
 	}
 
-	/deep/ .el-table__body-wrapper {
+	.el-table__body-wrapper {
 		table {
 			width: 100% !important;
 		}
@@ -116,10 +116,12 @@
 		td,
 		tr {
 			display: block;
+			height: auto;
 		}
 
 		tr {
 			border-top: 1px solid #006be0;
+			height: auto;
 
 			&:first-child {
 				margin-top: 20px;
@@ -135,24 +137,29 @@
 			border: 0;
 			border-bottom: 1px solid #e6e6e6;
 			display: flex;
+			height: auto;
 			position: relative;
 
 			.cell {
-				display: flex;
-				flex: 1;
+				display: block;
+				@if ($labels false) {
+					width: 100%;
+				}
 			}
 		}
 
-		td::before {
-			align-items: center;
-			display: flex;
-			min-width: 80px;
-			width: 40%;
-		}
+		@if ($labels true) {
+			td::before {
+				align-items: center;
+				display: flex;
+				min-width: 80px;
+				width: 35%;
+			}
 
-		@each $index, $name in $headers {
-			td:nth-of-type(#{$index}):before {
-				content: $name;
+			@each $index, $name in $headers {
+				td:nth-of-type(#{$index}):before {
+					content: $name;
+				}
 			}
 		}
 	}

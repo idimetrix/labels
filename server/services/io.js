@@ -1,6 +1,8 @@
+const dynamoose = require('dynamoose');
+
 const { server } = require('./express');
 
-const redisService = require('./redis');
+const { Files } = require('../services/db');
 
 const io = require('socket.io')(server, {});
 
@@ -18,7 +20,7 @@ class IO {
 	}
 
 	get id() {
-		return this.query.id;
+		return this.query.hash;
 	}
 
 	// --- constructor / destructor
@@ -26,7 +28,7 @@ class IO {
 	constructor(socket) {
 		this.socket = socket;
 
-		console.log(`socket with id ${this.id} constructed`, this.query);
+		this.debug(`socket with id ${this.hash} constructed`, this.query);
 
 		this.socket.on('disconnect', this.destructor.bind(this));
 		this.socket.on('lock', this.lock.bind(this));
@@ -37,7 +39,7 @@ class IO {
 	}
 
 	destructor() {
-		console.log(`socket with id ${this.id} destructed`, this.query);
+		this.debug(`socket with id ${this.hash} destructed`, this.query);
 
 		Object.keys(this.views).forEach((key) => this.view({ file: this.views[key], bool: false }));
 		Object.keys(this.locks).forEach((key) => this.lock({ file: this.locks[key], bool: false }));
@@ -75,42 +77,46 @@ class IO {
 
 	// --- methods
 
-	static test() {
-		io.emit('locked', { a: 1 });
+	debug(...args) {
+		console.log.apply(console, args);
 	}
 
 	async update(data) {
-		console.log('client said update', data);
+		this.debug('client said update', data);
 
-		await redisService.setAsync(data.id, JSON.stringify(data));
+		const fields = ['meta', 'boxes'];
+
+		const update = fields.reduce((obj, field) => ({ ...obj, [field]: data[field] }), {});
+
+		try {
+			Files.update({ id: data.id, sort: data.sort }, update, { condition: new dynamoose.Condition().where('hash').eq(data.hash) });
+		} catch (error) {
+			console.error({ error });
+		}
 
 		io.emit('updated', data);
 	}
 
 	async view(data) {
-		console.log('client said view', data);
+		this.debug('client said view', data);
 
 		if (data.bool) {
-			this.views[data.file.id] = data.file;
+			this.views[data.file.hash] = data.file;
 		} else {
-			delete this.views[data.file.id];
+			delete this.views[data.file.hash];
 		}
-
-		// await redisService.setAsync(data.file.id, JSON.stringify({ ...data.file, viewed: data.bool }));
 
 		this.socket.broadcast.emit('viewed', data);
 	}
 
 	async lock(data) {
-		console.log('client said lock', data);
+		this.debug('client said lock', data);
 
 		if (data.bool) {
-			this.locks[data.file.id] = data.file;
+			this.locks[data.file.hash] = data.file;
 		} else {
-			delete this.locks[data.file.id];
+			delete this.locks[data.file.hash];
 		}
-
-		// await redisService.setAsync(data.file.id, JSON.stringify({ ...data.file, locked: data.bool }));
 
 		this.socket.broadcast.emit('locked', data);
 	}

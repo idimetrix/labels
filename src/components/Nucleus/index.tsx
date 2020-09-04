@@ -40,7 +40,7 @@ class Nucleus extends Component<IProps, IState> {
 
 		return (
 			<Card
-				className=""
+				className="nucleus"
 				header={
 					<div className="flex align-center">
 						<div className="flex box grow align-center f-s-14">
@@ -53,12 +53,12 @@ class Nucleus extends Component<IProps, IState> {
 					</div>
 				}
 			>
-				<div className="cursor-pointer" onClick={(): void => this.props.onPreview(file)}>
-					<Boxes zoom={false} position="original" onClick={(): void => this.props.onPreview(file)} width="100%" file={file} />
-
-					<div className="m-t-10">
-						<Tags file={file} />
+				<div>
+					<div className="cursor-pointer" onClick={(): void => this.props.onPreview(file)}>
+						<Boxes lazy={false} zoom={false} position="original" width="100%" file={file} />
 					</div>
+
+					<Tags className="m-t-10" file={file} />
 				</div>
 			</Card>
 		);

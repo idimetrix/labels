@@ -8,15 +8,15 @@ import cn from 'classnames';
 import moment from 'moment';
 import _ from 'lodash';
 
-import { Table, Pagination, Radio, Form, Icon, Loading, Alert, Card, Switch, Slider, Select, Layout, Dialog } from 'element-react';
+import { Table, Pagination, Radio, Form, Icon, Loading, Alert, Card, Switch, Slider, Select, Layout, Dialog, Button } from 'element-react';
 
 import { IRootState } from '~/store/reducer';
 import { getEvents, getImages } from '~/store/api/reducer';
 import {
 	IEventsAction,
 	IEventsData,
-	IEventState,
 	IFileState,
+	IEventState,
 	IImagesAction,
 	IImagesData,
 	IUpdateLocksAction,
@@ -33,9 +33,7 @@ import Meta from '~/components/Meta';
 import Nucleus from '~/components/Nucleus';
 
 import { imageApi } from '~/api';
-import { getFileUrl } from '~/utils/assets';
-
-import styles from './styles.scss';
+import { forceDownload, getFileUrl } from '~/utils/assets';
 
 interface IConnectedState {
 	readonly images: IFileState;
@@ -89,62 +87,129 @@ class Home extends Component<IProps, IState> {
 	public constructor(props: IProps) {
 		super(props);
 
+		const view: string = ['table', 'grid'].includes(props.filter) ? props.filter : 'table';
+
+		const isTable: boolean = view === 'table';
+		const isGrid: boolean = view === 'grid';
+
 		this.state = {
-			view: ['table', 'grid'].includes(props.filter) ? props.filter : 'grid',
+			view,
 			currentPage: 1,
 			search: '',
 			pageSizes: [5, 10, 20, 30, 40, 50, 100],
-			pageSize: 10,
+			pageSize: isTable ? 30 : 10,
 			imageSizes: [100, 200, 300, 400, 500, 1000],
 			imageSize: 400,
 			preview: null,
 			settingsDialog: false,
 			filtersDialog: false,
 			controls: true,
-			filters: {
-				'meta.part': '',
-				'meta.quantity': '',
-				'meta.serial': '',
-				'meta.duplicate': '',
-				'meta.occluded': '',
-				'meta.unsure': '',
-			},
+			filters: {},
 			event: 'default',
 			columns: [
 				{
-					label: 'Image',
-					minWidth: 350,
+					label: '#',
+					width: 50,
 					render: (file: IFile, column?: any, index?: number): ReactNode => {
 						return (
-							<div className="flex align-center column">
-								<div className="flex align-center m-b-10">
-									<a style={{ color: 'rgb(72, 87, 106)' }} className="flex box grow p-0" href={getFileUrl(file)} target="_blank">
-										{file.name}
-									</a>
-									<span className="m-l-5"> {`${file.index + 1} of ${file.count}`}</span>
-								</div>
-
-								<div className="cursor-pointer" onClick={(): void => this.setState({ preview: file })}>
-									<Boxes lazy={false} zoom={false} onClick={(): void => this.setState({ preview: file })} width={`${this.state.imageSize}px`} file={file} />
-								</div>
-
-								<div className="m-t-10">
-									<Icon name="time" className="m-r-10" />
-									<span>{moment.unix(+file.date).format('LLL')}</span>
-									{file.viewed && <Icon name="edit" className="m-l-10" />}
-									{file.locked && <Icon name="warning" className="m-l-10" />}
-								</div>
+							<span className="cursor-pointer" onClick={(): void => this.setState({ preview: file })}>
+								{file.index + 1}
+							</span>
+						);
+					},
+				},
+				{
+					label: 'Image',
+					width: 186,
+					render: (file: IFile, column?: any, index?: number): ReactNode => {
+						return (
+							<div className="cursor-pointer" onClick={(): void => this.setState({ preview: file })}>
+								<Boxes zoom={false} lazy={false} onClick={(): void => this.setState({ preview: file })} width="150px" file={file} />
 							</div>
 						);
 					},
 				},
 				{
-					label: 'Data',
-					minWidth: 350,
+					label: 'Meta',
+					width: 120,
 					render: (file: IFile, column?: any, index?: number): ReactNode => {
-						return <Meta file={file} />;
+						return (
+							<div>
+								<div>Unsure: {file.meta.unsure ? 'yes' : 'no'}</div>
+								<div>Occluded: {file.meta.occluded ? 'yes' : 'no'}</div>
+								<div>Duplicate: {file.meta.duplicate ? 'yes' : 'no'}</div>
+							</div>
+						);
 					},
 				},
+				// {
+				// 	label: 'Link',
+				// 	render: (file: IFile, column?: any, index?: number): ReactNode => {
+				// 		return (
+				// 			<a style={{ color: 'rgb(72, 87, 106)' }} className="flex p-0" href={getFileUrl(file)} target="_blank">
+				// 				{file.name}
+				// 			</a>
+				// 		);
+				// 	},
+				// },
+				{
+					label: 'Date',
+					render: (file: IFile, column?: any, index?: number): ReactNode => {
+						return <span>{moment.unix(+file.date).format('LLL')}</span>;
+					},
+				},
+				{
+					label: 'Boxes',
+					width: 80,
+					render: (file: IFile, column?: any, index?: number): ReactNode => {
+						return <span>{file?.boxes?.length || 0}</span>;
+					},
+				},
+				{
+					label: 'Quantity',
+					width: 90,
+					render: (file: IFile, column?: any, index?: number): ReactNode => {
+						return <span>{file.meta.quantity || 0}</span>;
+					},
+				},
+				{
+					label: 'Part',
+					render: (file: IFile, column?: any, index?: number): ReactNode => {
+						return <span>{file.meta.part || '-'}</span>;
+					},
+				},
+				{
+					label: 'Serial',
+					render: (file: IFile, column?: any, index?: number): ReactNode => {
+						return <span>{file.meta.serial || '-'}</span>;
+					},
+				},
+				{
+					label: 'Actions',
+					minWidth: 100,
+					render: (file: IFile, column?: any, index?: number): ReactNode => {
+						return (
+							<div className="buttons-group">
+								<a style={{ textDecoration: 'none' }} href={getFileUrl(file)} target="_blank" className="el-button el-button--mini">
+									link
+								</a>
+								<Button onClick={(): void => this.setState({ preview: file })} type="" size="mini" className="">
+									view
+								</Button>
+								<a download={file.name} style={{ textDecoration: 'none' }} href={getFileUrl(file)} target="_blank" className="el-button el-button--mini">
+									download
+								</a>
+							</div>
+						);
+					},
+				},
+				// {
+				// 	label: 'Data',
+				// 	minWidth: 350,
+				// 	render: (file: IFile, column?: any, index?: number): ReactNode => {
+				// 		return <Meta file={file} />;
+				// 	},
+				// },
 				// {
 				//   label: 'Actions',
 				//   render: (file: IFile, column?: any, index?: number): ReactNode => {
@@ -166,7 +231,7 @@ class Home extends Component<IProps, IState> {
 		const files: IFile[] = images.files || [];
 
 		return (
-			<div className={cn(`page-${this.state.view}`)}>
+			<div className={cn(`page-${this.state.view}`, 'readonly')}>
 				<Loading loading={this.props.images.loading} text="Loading..." className="loading">
 					{this.renderPreview()}
 					{this.renderSettings()}
@@ -213,6 +278,7 @@ class Home extends Component<IProps, IState> {
 
 		return (
 			<Preview
+				readonly={true}
 				onPrev={async (file: IFile): Promise<void> => this.fetchImage(file, -1)}
 				onNext={async (file: IFile): Promise<void> => this.fetchImage(file, 1)}
 				file={files.find(({ hash }: IFile): boolean => hash === preview?.hash) || preview}
@@ -261,30 +327,11 @@ class Home extends Component<IProps, IState> {
 	}
 
 	private renderFilters(): ReactNode {
-		const { filtersDialog, filters }: IState = this.state;
-
-		const maker: (key: string, values: any[]) => ReactNode = (key: string, values: any[]): ReactNode => {
-			const handle: (value: any) => void = (value: any): void => this.setState({ filters: { ...filters, [key]: value } }, (): void => this.update());
-
-			return (
-				<Radio.Group value={filters[key]} onChange={(value: any): void => handle(value)}>
-					<Radio value={values[0]}>Any</Radio>
-					<Radio value={values[1]}>Yes</Radio>
-					<Radio value={values[2]}>No</Radio>
-				</Radio.Group>
-			);
-		};
-
 		return (
-			<Dialog title="Filters" size="small" visible={filtersDialog} onCancel={(): void => this.setState({ filtersDialog: false })} lockScroll={false}>
+			<Dialog title="Filters" size="small" visible={this.state.filtersDialog} onCancel={(): void => this.setState({ filtersDialog: false })} lockScroll={false}>
 				<Dialog.Body>
 					<Form className="demo-form-stacked" labelPosition="left" labelWidth="100">
-						<Form.Item label="Part">{maker('meta.part', ['', 'yes', 'no'])}</Form.Item>
-						<Form.Item label="Quantity">{maker('meta.quantity', ['', 'yes', 'no'])}</Form.Item>
-						<Form.Item label="Serial">{maker('meta.serial', ['', 'yes', 'no'])}</Form.Item>
-						<Form.Item label="Duplicate">{maker('meta.duplicate', ['', 'true', 'false'])}</Form.Item>
-						<Form.Item label="Occluded">{maker('meta.occluded', ['', 'true', 'false'])}</Form.Item>
-						<Form.Item label="Unsure">{maker('meta.unsure', ['', 'true', 'false'])}</Form.Item>
+						<Form.Item label="Filters">Filters</Form.Item>
 					</Form>
 				</Dialog.Body>
 			</Dialog>
@@ -311,13 +358,13 @@ class Home extends Component<IProps, IState> {
 				<div className="flex align-center">
 					<Search onChange={(search: any): void => this.setState({ search }, (): void => this.update())} />
 
-					<span onClick={(): void => this.setState({ filtersDialog: true })} className="f-s-24 m-l-20 cursor-pointer">
-						<i style={{ color: '#8492a6' }} className="el-icon-edit"></i>
-					</span>
+					{/*<span onClick={(): void => this.setState({ filtersDialog: true })} className="f-s-24 m-l-20 cursor-pointer">*/}
+					{/*	<i style={{ color: '#8492a6' }} className="el-icon-edit"></i>*/}
+					{/*</span>*/}
 
-					<span onClick={(): void => this.setState({ settingsDialog: true })} className="f-s-24 m-l-20 cursor-pointer">
-						<i style={{ color: '#8492a6' }} className="el-icon-setting"></i>
-					</span>
+					{/*<span onClick={(): void => this.setState({ settingsDialog: true })} className="f-s-24 m-l-20 cursor-pointer">*/}
+					{/*	<i style={{ color: '#8492a6' }} className="el-icon-setting"></i>*/}
+					{/*</span>*/}
 				</div>
 			</div>
 		);
@@ -331,12 +378,12 @@ class Home extends Component<IProps, IState> {
 			case 'table':
 				return (
 					<div>
-						<Table className="w-100 responsive-table" showHeader={false} columns={this.state.columns} data={files} border={true} />
+						<Table className="w-100 f-s-12 responsive-table" showHeader={true} columns={this.state.columns} data={files} border={true} />
 					</div>
 				);
 			case 'grid':
 				return (
-					<div className="grid">
+					<div className="grid readonly">
 						{files.map((file: IFile): any => (
 							<Nucleus key={file.hash} file={file} onPreview={(): void => this.setState({ preview: file })} />
 						))}

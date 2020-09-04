@@ -1,72 +1,101 @@
-const md5 = require('md5');
 const express = require('express');
-const s3Service = require('../services/s3');
+const md5 = require('md5');
+const dynamoose = require('dynamoose');
+
 const ioService = require('../services/io');
-const redisService = require('../services/redis');
+const { Files } = require('../services/db');
 
 const router = express.Router();
 
 router.get('/', async (req, res, next) => {
+	const event = req.query.event || 'default';
 	const offset = +req.query.offset || 0;
 	const limit = +req.query.limit || 10;
-	const search = (req.query.search || '').toLowerCase();
-	const filter = (req.query.filter || '').toLowerCase();
+	const order = ['ascending', 'descending'].includes(req.query.order) ? req.query.order : 'descending';
+	const search = req.query.search || '';
+	const filters = req.query.filters ? JSON.parse(req.query.filters) : {};
 
-	const names = await s3Service.files();
-
-	const files = [];
-
-	for (const name of names) {
-		const id = md5(name);
-
-		if (!(await redisService.getAsync(id))) {
-			await redisService.setAsync(
-				id,
-				JSON.stringify({
-					id,
-					name,
-					date: name.split('_')[1],
-					meta: {
-						part: '',
-						quantity: '',
-						serial: '',
-						duplicate: false,
-						occluded: false,
-						unsure: false,
-					},
-					boxes: [],
-				})
-			);
-		}
-
-		files.push(JSON.parse(await redisService.getAsync(id)));
-	}
-
-	let filtered = [];
+	let condition = new dynamoose.Condition().where('id').eq(event);
 
 	if (search) {
-		filtered = files.filter(({ meta }) => {
-			return (
-				meta.part.toLowerCase().indexOf(search) !== -1 || meta.quantity.toLowerCase().indexOf(search) !== -1 || meta.serial.toLowerCase().indexOf(search) !== -1
+		condition = condition
+			.and()
+			.parenthesis(
+				new dynamoose.Condition()
+					.where('name')
+					.contains(search)
+					.or()
+					.where('meta.part')
+					.contains(search)
+					.or()
+					.where('meta.quantity')
+					.contains(search)
+					.or()
+					.where('meta.serial')
+					.contains(search)
 			);
+	}
+
+	if (filters && Object.keys(filters).length) {
+		Object.keys(filters).forEach((key) => {
+			if (filters[key]) {
+			  const fn = filters[key].fn || 'eq'
+			  const value = filters[key].value || filters[key]
+
+        switch (value) {
+          case 'yes':
+            condition = condition.and().where(key).not()[fn].apply(condition, [].concat(''));
+            break;
+          case 'no':
+            condition = condition.and().where(key)[fn].apply(condition, [].concat(''));
+            break;
+          case 'true':
+            condition = condition.and().where(key).not()[fn].apply(condition, [].concat(true));
+            break;
+          case 'false':
+            condition = condition.and().where(key)[fn].apply(condition, [].concat(false));
+            break;
+
+          default:
+            condition = condition.and().where(key)[fn].apply(condition, [].concat(value));
+            break;
+        }
+			}
 		});
-	} else {
-		filtered = files.slice();
 	}
 
-	for (const file of filtered) {
-		file.locked = !!ioService.allLocks()[file.id];
-		file.viewed = !!ioService.allViews()[file.id];
+	// const key = md5(JSON.stringify(parameters));
+
+	// const cache = JSON.parse(await redisService.getAsync(key));
+
+	const data = /*cache ||*/ await Files.query(condition).sort(order).exec();
+
+	// if (!cache) {
+	// 	await redisService.setAsync(key, JSON.stringify(results), 'EX', 60 * 5); // seconds
+	// }
+
+	const list = [...data];
+
+	const files = list.slice(offset, offset + limit);
+
+	const allLocks = ioService.allLocks();
+	const allViews = ioService.allViews();
+
+	let it = 0;
+
+	for (const file of files) {
+		file.locked = !!allLocks[file.hash];
+		file.viewed = !!allViews[file.hash];
+		file.index = offset + it++;
+		file.count = list.length;
 	}
 
-	const images = {
+	res.json({
 		offset,
 		limit,
-		files: filtered.slice(offset, offset + limit),
-		total: filtered.length,
-	};
-
-	res.json(images);
+		files,
+		total: list.length,
+	});
 });
 
 module.exports = router;

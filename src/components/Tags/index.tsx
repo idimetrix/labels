@@ -1,7 +1,9 @@
 import React, { Component, HTMLAttributes, ReactNode } from 'react';
 import { Breadcrumb, Card, Icon, Tag } from 'element-react';
+import cn from 'classnames';
 
 import { IFile } from '~/models';
+import { getFileUrl } from '~/utils/assets';
 
 import styles from './styles.scss';
 
@@ -30,8 +32,14 @@ class Tags extends Component<IProps, IState> {
 		const { file }: IProps = this.props;
 
 		return (
-			<div>
-				<div>
+			<div className={cn('tags', this.props.className)}>
+				<div className="flex align-center f-s-12">
+					<a style={{ color: '#48576a' }} className="flex box grow f-s-12 p-0" href={getFileUrl(file)} target="_blank">
+						{file.name}
+					</a>
+					<span className="m-l-5"> {`${file.index + 1} of ${file.count}`}</span>
+				</div>
+				<div className="m-t-10">
 					<Tag className="m-r-5" type={file.meta.unsure ? '' : 'gray'}>
 						unsure
 					</Tag>

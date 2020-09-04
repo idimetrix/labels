@@ -1,5 +1,7 @@
 import React, { Component, createRef, HTMLAttributes, ReactNode, RefObject } from 'react';
 
+import cn from 'classnames';
+
 import styles from './styles.scss';
 
 interface IProps extends HTMLAttributes<HTMLSpanElement> {
@@ -61,7 +63,7 @@ class ImageZoom extends Component<IProps, IState> {
 				onMouseMove={this.mouseMove}
 				style={{ display: 'flex', pointerEvents: this.props.zoom ? 'auto' : 'none' }}
 				ref={this.container}
-				className="position-relative"
+				className={cn('position-relative', this.props.className)}
 			>
 				{this.props.children}
 			</div>

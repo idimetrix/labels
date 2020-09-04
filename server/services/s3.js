@@ -1,56 +1,39 @@
-const fs = require('fs');
-const path = require('path');
-
-const redisService = require('./redis');
-
 const AWS = require('aws-sdk');
 
-AWS.config.update({ accessKeyId: process.env.AWS_KEY, secretAccessKey: process.env.AWS_SECRET });
-
-console.log({ accessKeyId: process.env.AWS_KEY, secretAccessKey: process.env.AWS_SECRET });
+AWS.config.update({ accessKeyId: process.env.AWS_KEY, secretAccessKey: process.env.AWS_SECRET, region: process.env.AWS_REGION });
 
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 
-// const folder = path.join(__dirname, '../public/data');
-
-const params = {
-	Bucket: process.env.AWS_BUCKET,
-	Prefix: process.env.AWS_PREFIX,
-};
-
-// s3.listBuckets((err, data) => {
-//   if (err) {
-//     console.log('Error', err);
-//   } else {
-//     console.log('Success', data);
-//   }
-// });
-
 class S3 {
-	static async files(reverse = false) {
-		// const names = fs.readdirSync(folder).map((file) => file);
+	static async files({ parameters = {}, callback = null } = {}) {
+		let files = [];
+		let loop = true;
+		let index = 0;
 
-		let cache = await redisService.getAsync('files');
+		let ContinuationToken = null;
 
-		console.log('cache', cache);
+		while (loop) {
+			try {
+				const data = await s3.listObjectsV2({ ...(parameters || {}), Bucket: process.env.AWS_BUCKET, ContinuationToken, MaxKeys: 1000 }).promise();
 
-		const names = cache
-			? JSON.parse(cache)
-			: await new Promise((resolve) => {
-					s3.listObjectsV2(params, async (err, data) => {
-						if (err) {
-							console.log('Error', err);
-						} else {
-							const result = data.Contents.map(({ Key }) => Key).sort((a, b) => b.split('_')[1] - a.split('_')[1]);
+				if (!data.IsTruncated) {
+					loop = false;
+					ContinuationToken = null;
+				} else {
+					ContinuationToken = data.NextContinuationToken;
+				}
 
-							await redisService.setAsync('files', JSON.stringify(result), 'EX', 60 * 5); // in seconds
+				callback && callback(data.Contents || [], index);
 
-							resolve(result);
-						}
-					});
-			  });
+				files.push(...(data.Contents || []));
 
-		return reverse ? names.reverse() : names;
+				index++;
+			} catch {
+				loop = false;
+			}
+		}
+
+		return files;
 	}
 }
 

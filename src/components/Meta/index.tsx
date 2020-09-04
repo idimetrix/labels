@@ -35,6 +35,7 @@ interface IConnectedDispatch {
 
 interface IProps extends HTMLAttributes<HTMLSpanElement>, WithTranslation, IConnectedState, IConnectedDispatch {
 	readonly file: IFile;
+	readonly readonly: boolean;
 	readonly onChange: (newFile: IFile, oldFile: IFile) => void;
 }
 
@@ -58,6 +59,7 @@ interface IState {
 class Meta extends Component<IProps, IState> {
 	public static defaultProps: IProps = {
 		file: null,
+		readonly: true,
 		onChange: (newFile: IFile, oldFile: IFile): void => {
 			/**/
 		},
@@ -95,9 +97,11 @@ class Meta extends Component<IProps, IState> {
 	}
 
 	public render(): ReactNode {
+		const { readonly }: IProps = this.props;
+
 		return (
 			<Loading loading={this.state.loading} className="loading">
-				<Form className="demo-form-stacked" labelPosition="left" labelWidth="100">
+				<Form className="demo-form-stacked" labelPosition="left" labelWidth="90">
 					{this.builder('input', 'part')}
 					{this.builder('input', 'quantity')}
 					{this.builder('input', 'serial')}
@@ -111,7 +115,7 @@ class Meta extends Component<IProps, IState> {
 							<div className="m-r-10">
 								Unsure
 								<Switch
-									disabled={this.props.file.viewed}
+									disabled={this.props.file.viewed || readonly}
 									className="m-l-5"
 									onText=""
 									offText=""
@@ -124,7 +128,7 @@ class Meta extends Component<IProps, IState> {
 							<div className="m-r-10">
 								Occluded
 								<Switch
-									disabled={this.props.file.viewed}
+									disabled={this.props.file.viewed || readonly}
 									className="m-l-5"
 									onText=""
 									offText=""
@@ -137,7 +141,7 @@ class Meta extends Component<IProps, IState> {
 							<div className="m-r-20">
 								Duplicate
 								<Switch
-									disabled={this.props.file.viewed}
+									disabled={this.props.file.viewed || readonly}
 									className="m-l-5"
 									onText=""
 									offText=""
@@ -148,7 +152,7 @@ class Meta extends Component<IProps, IState> {
 								/>
 							</div>
 
-							{this.state.changed && (
+							{this.state.changed && !readonly && (
 								<div className="text-nowrap d-none-under-lg">
 									<Button size="small" type="primary" onClick={(): void => this.save()}>
 										Save
@@ -159,7 +163,7 @@ class Meta extends Component<IProps, IState> {
 								</div>
 							)}
 						</div>
-						{this.state.changed && (
+						{this.state.changed && !readonly && (
 							<div className="text-nowrap d-block-under-lg d-none-over-lg m-t-22">
 								<Button size="small" type="primary" onClick={(): void => this.save()}>
 									Save
@@ -205,12 +209,14 @@ class Meta extends Component<IProps, IState> {
 	}
 
 	private builder(type: 'switch' | 'input' | 'number', key: string): ReactNode {
+		const { readonly }: IProps = this.props;
+
 		switch (type) {
 			case 'switch':
 				return (
 					<Form.Item label={key.replace(/^./, key[0].toUpperCase())}>
 						<Switch
-							disabled={this.props.file.viewed}
+							disabled={this.props.file.viewed || readonly}
 							onText=""
 							offText=""
 							value={this.state.updater.meta[key]}
@@ -223,7 +229,7 @@ class Meta extends Component<IProps, IState> {
 				return (
 					<Form.Item label={key.replace(/^./, key[0].toUpperCase())}>
 						<Input
-							disabled={this.props.file.viewed}
+							disabled={this.props.file.viewed || readonly}
 							size={'small'}
 							value={this.state.updater.meta[key]}
 							onChange={(value: any): void => this.onChange(key, value)}
@@ -236,7 +242,7 @@ class Meta extends Component<IProps, IState> {
 					<Form.Item label={key.replace(/^./, key[0].toUpperCase())}>
 						<InputNumber
 							className="w-100"
-							disabled={this.props.file.viewed}
+							disabled={this.props.file.viewed || readonly}
 							size={'small'}
 							value={this.state.updater.meta[key] || 0}
 							onChange={(value: any): void => this.onChange(key, value)}

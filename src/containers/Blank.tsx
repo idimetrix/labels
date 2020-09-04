@@ -2,18 +2,22 @@ import React, { Component, lazy, LazyExoticComponent, ReactNode, Suspense } from
 import { connect } from 'react-redux';
 import { Redirect, Route, RouteComponentProps, Switch, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
-import { IUser } from '~/store/auth/models';
+import { Footer, Header } from '~/partials/Blank';
+import { IUser, IUserAction } from '~/store/auth/models';
 import { getUser } from '~/store/auth/reducer';
 import { IRootState } from '~/store/reducer';
+import { userAction } from '~/store/auth/actions';
 
-const Base: LazyExoticComponent<any> = lazy((): Promise<any> => import('~/pages/Blank/Base'));
+const Home: LazyExoticComponent<any> = lazy((): Promise<any> => import('~/pages/Blank/Home'));
+
+const About: LazyExoticComponent<any> = lazy((): Promise<any> => import('~/pages/Blank/About'));
 
 interface IConnectedState {
 	readonly user: IUser;
 }
 
 interface IConnectedDispatch {
-	readonly [key: string]: any;
+	fetchUser(): void;
 }
 
 interface IState {
@@ -28,7 +32,9 @@ const mapStateToProps: (state: IRootState) => IConnectedState = (state: IRootSta
 	user: getUser(state.auth),
 });
 
-const mapDispatchToProps: (dispatch: Dispatch) => IConnectedDispatch = (dispatch: Dispatch): IConnectedDispatch => ({});
+const mapDispatchToProps: (dispatch: Dispatch) => IConnectedDispatch = (dispatch: Dispatch): IConnectedDispatch => ({
+	fetchUser: (): IUserAction => dispatch(userAction()),
+});
 
 class Blank extends Component<IProps, IState> {
 	public props: IProps;
@@ -40,16 +46,27 @@ class Blank extends Component<IProps, IState> {
 		this.state = {};
 	}
 
+	public componentDidMount(): void {
+		this.props.fetchUser();
+	}
+
 	public render(): ReactNode {
 		return (
-			<div>
-				<Suspense fallback={null}>
-					<Switch>
-						<Route path="/blank/base" name="Base" component={Base} />
-						<Redirect from="/blank" to="/blank/base" exact />
-						<Redirect from="*" to="/error/404" />
-					</Switch>
-				</Suspense>
+			<div className="app">
+				<Header />
+				<div className="main container">
+					<Suspense fallback={null}>
+						<Switch>
+							<Route path="/blank/home" name="Home" component={Home} />
+							<Route path="/blank/grid" name="Grid" component={(): any => <Home filter="grid" />} />
+							<Route path="/blank/table" name="Table" component={(): any => <Home filter="table" />} />
+							<Route path="/blank/about" name="About" component={About} />
+							<Redirect from="/blank" to="/blank/home" exact />
+							<Redirect from="*" to="/error/404" />
+						</Switch>
+					</Suspense>
+				</div>
+				<Footer />
 			</div>
 		);
 	}

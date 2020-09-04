@@ -5,7 +5,7 @@
 	"scripts": {
 		"start": "node app.js",
 		"watch": "nodemon app.js",
-		"prettier": "prettier --write '{bin,public,routes,services}/**/*.{ts,tsx,js,jsx,css,scss,sass,htm,html,json}' '*.{ts,tsx,js,jsx,css,scss,sass,htm,html,json}'",
+		"prettier": "prettier --write '{bin,public,routes,services,utils}/**/*.{ts,tsx,js,jsx,css,scss,sass,htm,html,json}' '*.{ts,tsx,js,jsx,css,scss,sass,htm,html,json}'",
 		"client": "cd public && ws --spa index.html"
 	},
 	"dependencies": {
@@ -14,16 +14,19 @@
 		"cors": "^2.8.5",
 		"debug": "~4.1.1",
 		"dotenv": "^8.2.0",
+		"dynamoose": "^2.3.0",
 		"express": "~4.17.1",
 		"fast-md5": "^1.0.2",
+		"lodash": "^4.17.20",
 		"md5": "^2.3.0",
 		"morgan": "~1.10.0",
+		"node-cron": "^2.0.3",
 		"redis": "^3.0.2",
 		"socket.io": "^2.3.0",
 		"uuid": "^8.3.0"
 	},
 	"devDependencies": {
-		"aws-sdk": "^2.742.0",
+		"aws-sdk": "^2.746.0",
 		"nodemon": "^2.0.4",
 		"prettier": "^2.1.1"
 	}

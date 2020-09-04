@@ -3,6 +3,7 @@
 @import 'helpers';
 @import 'mixins';
 @import 'element';
+@import 'scrollbar';
 
 html,
 body {
@@ -32,52 +33,70 @@ body {
 	}
 }
 
-.grid {
-	display: grid;
-	grid-gap: 20px;
-	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+.page {
+	&-grid {
+		.grid {
+			display: grid;
+			grid-gap: 20px;
+			grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
 
-	@include under-break($break--lg) {
-		grid-template-columns: 1fr 1fr 1fr;
+			@include under-break($break--lg) {
+				grid-template-columns: 1fr 1fr 1fr;
+			}
+
+			@include under-break($break--md) {
+				grid-template-columns: 1fr 1fr;
+			}
+
+			@include under-break($break--sm) {
+				grid-template-columns: 1fr 1fr;
+			}
+
+			@include under-break($break--xs + 1) {
+				grid-template-columns: 1fr;
+			}
+		}
 	}
 
-	@include under-break($break--md) {
-		grid-template-columns: 1fr 1fr;
+	&-table {
+		@include under-break($break--sm) {
+			.el-table.responsive-table {
+				@include responsive-table(
+					(
+						1: 'Image',
+						2: 'Data',
+					),
+					false
+				);
+			}
+		}
+
+		&.readonly {
+			@include under-break($break--md) {
+				.el-table.responsive-table {
+					@include responsive-table(
+						(
+							1: '#',
+							2: 'Image',
+							3: 'Meta',
+							4: 'Date',
+							5: 'Boxes',
+							6: 'Quantity',
+							7: 'Part',
+							8: 'Serial',
+							9: 'Actions',
+						)
+					);
+				}
+			}
+
+			.buttons-group {
+				.el-button {
+					margin: 0 5px 0 0 !important;
+				}
+			}
+		}
 	}
-
-	@include under-break($break--sm) {
-		grid-template-columns: 1fr 1fr;
-	}
-
-	@include under-break($break--xs + 1) {
-		grid-template-columns: 1fr;
-	}
-}
-
-//@include under-break($break--sm) {
-//	.responsive-table {
-//		@include responsive-table(
-//			(
-//				1: 'Image',
-//				2: 'Date',
-//			)
-//		);
-//	}
-//}
-
-*::-webkit-scrollbar {
-	height: 9px;
-	width: 9px;
-}
-
-*::-webkit-scrollbar-thumb {
-	background: #e5e7eb;
-	border-radius: 4.5px;
-}
-
-*::-webkit-scrollbar-track {
-	background: transparent;
-	border-radius: 4.5px;
 }
 
 @import 'app';

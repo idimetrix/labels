@@ -24,6 +24,8 @@ $sides: (top, bottom, left, right);
 
 $displays: (none, flex, block, table, table-cell, table-row);
 
+$overflows: (auto, hidden, visible, scroll);
+
 $texts: (left, right, center);
 
 @mixin helpers($space, $prefix, $suffix) {
@@ -141,6 +143,20 @@ $texts: (left, right, center);
 	}
 }
 
+@each $overflow in $overflows {
+	.overflow-#{$overflow} {
+		overflow: #{$overflow};
+	}
+
+	.overflow-x-#{$overflow} {
+		overflow-x: #{$overflow};
+	}
+
+	.overflow-y-#{$overflow} {
+		overflow-y: #{$overflow};
+	}
+}
+
 @each $key, $size in $sizes {
 	@include over-break($size) {
 		@each $display in $displays {
@@ -164,6 +180,20 @@ $texts: (left, right, center);
 		@each $text in $texts {
 			.text-#{$text}-#{$key} {
 				text-align: #{$text};
+			}
+		}
+
+		@each $overflow in $overflows {
+			.overflow-#{$overflow}-#{$key} {
+				overflow: #{$overflow};
+			}
+
+			.overflow-x-#{$overflow}-#{$key} {
+				overflow-x: #{$overflow};
+			}
+
+			.overflow-y-#{$overflow}-#{$key} {
+				overflow-y: #{$overflow};
 			}
 		}
 	}
@@ -312,30 +342,6 @@ $texts: (left, right, center);
 
 .o-1 {
 	opacity: 1;
-}
-
-.overflow-auto {
-	overflow: auto;
-}
-
-.overflow-x-auto {
-	overflow-x: auto;
-}
-
-.overflow-y-auto {
-	overflow-y: auto;
-}
-
-.overflow-hidden {
-	overflow: hidden;
-}
-
-.overflow-x-hidden {
-	overflow-x: hidden;
-}
-
-.overflow-y-hidden {
-	overflow-y: hidden;
 }
 
 // --- classes

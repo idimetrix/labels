@@ -17,6 +17,7 @@ interface IProps extends HTMLAttributes<HTMLSpanElement> {
 	readonly onNext: (file: IFile) => void;
 	readonly onCancel: () => void;
 	readonly visible: boolean;
+	readonly readonly: boolean;
 }
 
 interface IState {
@@ -36,6 +37,7 @@ class Preview extends Component<IProps, IState> {
 			/* */
 		},
 		visible: false,
+		readonly: false,
 	};
 	public props: IProps;
 	public state: IState;
@@ -50,16 +52,18 @@ class Preview extends Component<IProps, IState> {
 
 	public render(): ReactNode {
 		const { loading }: IState = this.state;
-		const { file }: IProps = this.props;
+		const { file, readonly }: IProps = this.props;
+
+		if (!file) return '';
 
 		return (
-			<Dialog size="full" title="Preview" visible={this.props.visible} onCancel={this.props.onCancel}>
+			<Dialog size="full" title={`"${file.name}" ${file.index + 1} of ${file.count}`} visible={this.props.visible} onCancel={this.props.onCancel}>
 				<Dialog.Body>
 					<Loading loading={loading}>
 						{file && (
 							<Layout.Row gutter="20">
 								<Layout.Col span="14" md="14" sm="24" xs="24">
-									<Boxes position="original" width="100%" file={file} lazy={false} zoom={true} mode="edit" />
+									<Boxes position="original" width="100%" file={file} lazy={false} zoom={true} readonly={readonly} interactive={true} />
 								</Layout.Col>
 								<Layout.Col span="10" md="10" sm="24" xs="24" className="m-t-20-sm">
 									<div className="flex align-center m-b-20 f-s-20">
@@ -72,7 +76,7 @@ class Preview extends Component<IProps, IState> {
 										</a>
 									</div>
 
-									<Meta file={file} />
+									<Meta file={file} readonly={readonly} />
 
 									<Form className="demo-form-stacked m-t-20" labelPosition="left" labelWidth="100">
 										<Form.Item>

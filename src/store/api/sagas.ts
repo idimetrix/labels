@@ -4,6 +4,12 @@ import { call, takeLatest, fork, take, put, ChannelTakeEffect } from 'redux-saga
 
 import { putSuccess, putFailure } from '~/store/handlers';
 import {
+	EventApiTypes,
+	eventFailure,
+	EventsApiTypes,
+	eventsFailure,
+	eventsSuccess,
+	eventSuccess,
 	ImageApiTypes,
 	imageFailure,
 	ImagesApiTypes,
@@ -15,8 +21,8 @@ import {
 	updateLocksSuccess,
 	updateViewsSuccess,
 } from '~/store/api/actions';
-import { IImageAction, IImagesAction, ISocketAction } from '~/store/api/models';
-import { imageApi, imagesApi } from '~/api';
+import { IEventAction, IEventsAction, IImageAction, IImagesAction, ISocketAction } from '~/store/api/models';
+import { eventApi, eventsApi, imageApi, imagesApi } from '~/api';
 
 function connect(): Promise<any> {
 	const socket: SocketIOClient.Socket = io(process.env.API_URL);
@@ -96,8 +102,42 @@ function* imageWorker({ payload }: IImageAction): Generator<any, any, any> {
 	}
 }
 
+function* eventsWorker({ payload }: IEventsAction): Generator<any, any, any> {
+	try {
+		const { data }: any = yield call(eventsApi, payload);
+
+		if (data) {
+			yield putSuccess(eventsSuccess, data);
+		} else {
+			throw new Error('Error');
+		}
+	} catch (e) {
+		console.log('Error', e);
+
+		yield putFailure(eventsFailure, e);
+	}
+}
+
+function* eventWorker({ payload }: IEventAction): Generator<any, any, any> {
+	try {
+		const { data }: any = yield call(eventApi, payload);
+
+		if (data) {
+			yield putSuccess(eventSuccess, data);
+		} else {
+			throw new Error('Error');
+		}
+	} catch (e) {
+		console.log('Error', e);
+
+		yield putFailure(eventFailure, e);
+	}
+}
+
 export default function* apiSaga(): Generator<any, any, any> {
 	yield fork(sockets);
 	yield takeLatest(ImageApiTypes.IMAGE_ACTION_REQUEST, imageWorker);
 	yield takeLatest(ImagesApiTypes.IMAGES_ACTION_REQUEST, imagesWorker);
+	yield takeLatest(EventApiTypes.EVENT_ACTION_REQUEST, eventWorker);
+	yield takeLatest(EventsApiTypes.EVENTS_ACTION_REQUEST, eventsWorker);
 }

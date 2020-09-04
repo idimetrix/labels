@@ -1,6 +1,10 @@
 import { action } from 'typesafe-actions';
 
 import {
+	IEventAction,
+	IEventState,
+	IEventsAction,
+	IEventsData,
 	IImageAction,
 	IImageData,
 	IImagesAction,
@@ -42,6 +46,35 @@ export const imagesAction: (payload: IImagesData) => IImagesAction = (payload: I
 export const imagesSuccess: (payload?: any) => IImagesAction = (payload?: any): IImagesAction => action(ImagesApiTypes.IMAGES_ACTION_SUCCESS, payload);
 
 export const imagesFailure: (payload?: any) => IImagesAction = (payload?: any): IImagesAction => action(ImagesApiTypes.IMAGES_ACTION_FAILURE, payload);
+
+// --- Event
+
+export enum EventApiTypes {
+	EVENT_ACTION_REQUEST = 'EVENT_ACTION_REQUEST',
+	EVENT_ACTION_SUCCESS = 'EVENT_ACTION_SUCCESS',
+	EVENT_ACTION_FAILURE = 'EVENT_ACTION_FAILURE',
+}
+
+export const eventAction: (payload: IEventState) => IEventAction = (payload: IEventState): IEventAction => action(EventApiTypes.EVENT_ACTION_REQUEST, payload);
+
+export const eventSuccess: (payload?: any) => IEventAction = (payload?: any): IEventAction => action(EventApiTypes.EVENT_ACTION_SUCCESS, payload);
+
+export const eventFailure: (payload?: any) => IEventAction = (payload?: any): IEventAction => action(EventApiTypes.EVENT_ACTION_FAILURE, payload);
+
+// --- Events
+
+export enum EventsApiTypes {
+	EVENTS_ACTION_REQUEST = 'EVENTS_ACTION_REQUEST',
+	EVENTS_ACTION_SUCCESS = 'EVENTS_ACTION_SUCCESS',
+	EVENTS_ACTION_FAILURE = 'EVENTS_ACTION_FAILURE',
+}
+
+export const eventsAction: (payload: IEventsData) => IEventsAction = (payload: IEventsData): IEventsAction =>
+	action(EventsApiTypes.EVENTS_ACTION_REQUEST, payload);
+
+export const eventsSuccess: (payload?: any) => IEventsAction = (payload?: any): IEventsAction => action(EventsApiTypes.EVENTS_ACTION_SUCCESS, payload);
+
+export const eventsFailure: (payload?: any) => IEventsAction = (payload?: any): IEventsAction => action(EventsApiTypes.EVENTS_ACTION_FAILURE, payload);
 
 // --- Socket
 

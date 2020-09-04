@@ -1,20 +1,33 @@
-import { IApiState, IFileData } from '~/store/api/models';
-import { ImagesApiTypes, UpdateImageApiTypes, UpdateLocksApiTypes, UpdateViewsApiTypes } from '~/store/api/actions';
-import { IFile } from '~/models';
+import _ from 'lodash';
 
-const initialFileData: IFileData = {
+import { IApiState, IEventState, IFileState } from '~/store/api/models';
+import { EventsApiTypes, ImagesApiTypes, UpdateImageApiTypes, UpdateLocksApiTypes, UpdateViewsApiTypes } from '~/store/api/actions';
+import { IFile } from '~/models';
+import { Mutable } from 'utility-types';
+
+const initialFileData: IFileState = {
 	loading: false,
 	error: null,
 	offset: 0,
 	limit: 0,
-	count: 0,
+	total: 0,
 	files: [],
+};
+
+const initialEventData: IEventState = {
+	loading: false,
+	error: null,
+	offset: 0,
+	limit: 0,
+	total: 0,
+	events: [],
 };
 
 const initialState: IApiState = {
 	images: { ...initialFileData },
 	locks: { ...initialFileData },
 	views: { ...initialFileData },
+	events: { ...initialEventData },
 };
 
 export function reducer(state: IApiState = initialState, action: any): IApiState {
@@ -27,6 +40,14 @@ export function reducer(state: IApiState = initialState, action: any): IApiState
 		case ImagesApiTypes.IMAGES_ACTION_FAILURE:
 			return { ...state, images: { ...state.images, loading: false, error: action.payload } };
 
+		// --- Events
+		case EventsApiTypes.EVENTS_ACTION_REQUEST:
+			return { ...state, events: { ...state.events, loading: true } };
+		case EventsApiTypes.EVENTS_ACTION_SUCCESS:
+			return { ...state, events: { ...action.payload, loading: false, error: null } };
+		case EventsApiTypes.EVENTS_ACTION_FAILURE:
+			return { ...state, events: { ...state.events, loading: false, error: action.payload } };
+
 		// --- Locks
 		case UpdateLocksApiTypes.UPDATE_LOCKS_ACTION_SUCCESS: {
 			const file: IFile = action.payload.file;
@@ -34,7 +55,7 @@ export function reducer(state: IApiState = initialState, action: any): IApiState
 
 			const files: IFile[] = state.images.files;
 
-			const index: number = files.findIndex(({ id }: IFile): boolean => id === file.id);
+			const index: number = files.findIndex(({ hash }: IFile): boolean => hash === file.hash);
 
 			console.log('action update lock', action, index);
 
@@ -56,7 +77,7 @@ export function reducer(state: IApiState = initialState, action: any): IApiState
 
 			const files: IFile[] = state.images.files;
 
-			const index: number = files.findIndex(({ id }: IFile): boolean => id === file.id);
+			const index: number = files.findIndex(({ hash }: IFile): boolean => hash === file.hash);
 
 			console.log('action update view', action, index);
 
@@ -77,7 +98,7 @@ export function reducer(state: IApiState = initialState, action: any): IApiState
 
 			const files: IFile[] = state.images.files;
 
-			const index: number = files.findIndex(({ id }: IFile): boolean => id === file.id);
+			const index: number = files.findIndex(({ hash }: IFile): boolean => hash === file.hash);
 
 			console.log('action update image', action, index);
 
@@ -97,3 +118,4 @@ export function reducer(state: IApiState = initialState, action: any): IApiState
 // Selectors
 
 export const getImages: (state: IApiState) => IApiState['images'] = (state: IApiState): IApiState['images'] => state.images;
+export const getEvents: (state: IApiState) => IApiState['events'] = (state: IApiState): IApiState['events'] => state.events;

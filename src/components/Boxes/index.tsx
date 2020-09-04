@@ -29,7 +29,8 @@ interface IConnectedDispatch {
 
 interface IProps extends HTMLAttributes<HTMLSpanElement>, WithTranslation, IConnectedState, IConnectedDispatch {
 	readonly file: IFile;
-	readonly mode?: 'view' | 'edit';
+	readonly readonly?: boolean;
+	readonly interactive?: boolean;
 	readonly lazy?: boolean;
 	readonly zoom?: boolean;
 	readonly link?: boolean;
@@ -63,7 +64,8 @@ const mapDispatchToProps: (dispatch: Dispatch) => IConnectedDispatch = (dispatch
 class Boxes extends Component<IProps, IState> {
 	public static defaultProps: IProps = {
 		file: null,
-		mode: 'view',
+		readonly: true,
+		interactive: false,
 		lazy: true,
 		zoom: true,
 		link: false,
@@ -121,45 +123,47 @@ class Boxes extends Component<IProps, IState> {
 	}
 
 	public render(): ReactNode {
-		const { zoom }: IProps = this.props;
+		const { zoom, file, readonly, interactive }: IProps = this.props;
 		const { updater, currentBox, k, controls, labels, zoomable, scale }: IState = this.state;
 
 		if (!updater) {
 			return '';
 		}
 
-		const editable: boolean = this.props.mode === 'edit';
-
 		return (
-			<div className="position-relative">
-				{editable && (
-					<div className="flex column m-t-5">
+			<div className="position-relative w-100 h-100 boxes">
+				<div className="flex column boxes-controls">
+					{interactive && (
 						<div className="flex wrap align-center">
-							<div className="m-r-10 m-b-20 flex align-center">
-								Controls
-								<Switch
-									className="m-l-5"
-									onText=""
-									offText=""
-									offValue={false}
-									onValue={true}
-									value={controls}
-									onChange={(): void => this.setState({ controls: !controls })}
-								/>
-							</div>
+							{!!updater?.boxes?.length && (
+								<div className="m-r-10 m-b-20 flex align-center">
+									Controls
+									<Switch
+										className="m-l-5"
+										onText=""
+										offText=""
+										offValue={false}
+										onValue={true}
+										value={controls}
+										onChange={(): void => this.setState({ controls: !controls })}
+									/>
+								</div>
+							)}
 
-							<div className="m-r-10 m-b-20 flex align-center">
-								Labels
-								<Switch
-									className="m-l-5"
-									onText=""
-									offText=""
-									offValue={false}
-									onValue={true}
-									value={labels}
-									onChange={(): void => this.setState({ labels: !labels })}
-								/>
-							</div>
+							{!!updater?.boxes?.length && (
+								<div className="m-r-10 m-b-20 flex align-center">
+									Labels
+									<Switch
+										className="m-l-5"
+										onText=""
+										offText=""
+										offValue={false}
+										onValue={true}
+										value={labels}
+										onChange={(): void => this.setState({ labels: !labels })}
+									/>
+								</div>
+							)}
 
 							<div className="m-r-10 m-b-20 flex align-center">
 								Zoomable
@@ -185,7 +189,9 @@ class Boxes extends Component<IProps, IState> {
 								/>
 							</div>
 						</div>
+					)}
 
+					{!readonly && (
 						<div className="flex align-center m-b-20">
 							<div className="flex box grow align-center">
 								<Button className="m-r-5" size="mini" type="success" onClick={(): void => this.addBox()}>
@@ -221,17 +227,18 @@ class Boxes extends Component<IProps, IState> {
 								)}
 							</div>
 						</div>
-					</div>
-				)}
-				<div className="position-relative">
-					{k > 0 && !zoomable && (
+					)}
+				</div>
+
+				<div className="position-relative w-100 h-100 boxes-container">
+					{k > 0 && k !== Infinity && !Number.isNaN(k) && !zoomable && (
 						<div style={{ left: 0, top: 0, zoom: k }} className="position-absolute w-100 h-100">
 							{updater.boxes.map(
 								(box: IFileBox, index: number): ReactNode => (
 									<ResizableRect
 										className="abc"
 										scale={k}
-										draggable={editable && !zoomable}
+										draggable={!readonly && !zoomable}
 										key={box.id}
 										left={box.x}
 										top={box.y}
@@ -241,38 +248,31 @@ class Boxes extends Component<IProps, IState> {
 										// aspectRatio={false}
 										// minWidth={10}
 										// minHeight={10}
-										zoomable={editable && controls && !zoomable ? 'n, w, s, e, nw, ne, se, sw' : ''}
-										rotatable={editable && controls && !zoomable}
+										zoomable={!readonly && controls && !zoomable ? 'n, w, s, e, nw, ne, se, sw' : ''}
+										rotatable={!readonly && controls && !zoomable}
 										// onRotateStart={this.handleRotateStart}
-										onRotate={(angle: number): void => editable && this.handleRotate(index, box, angle)}
+										onRotate={(angle: number): void => !readonly && this.handleRotate(index, box, angle)}
 										// onRotateEnd={this.handleRotateEnd}
 										// onResizeStart={this.handleResizeStart}
-										onResize={(style: any, isShiftKey: boolean, type: any): void => editable && this.handleResize(index, box, style, isShiftKey, type)}
+										onResize={(style: any, isShiftKey: boolean, type: any): void => !readonly && this.handleResize(index, box, style, isShiftKey, type)}
 										// onResizeEnd={this.handleUp}
 										onDragStart={(): void => this.setState({ currentBox: index })}
-										onDrag={(deltaX: number, deltaY: number): void => editable && this.handleDrag(index, box, deltaX, deltaY)}
+										onDrag={(deltaX: number, deltaY: number): void => !readonly && this.handleDrag(index, box, deltaX, deltaY)}
 										// onDragEnd={this.handleDragEnd}
 									>
-										{editable && labels && (box.data.text || '')}
+										{!readonly && labels && (box.data.text || '')}
 									</ResizableRect>
 								)
 							)}
 						</div>
 					)}
-					<a href={this.props.link ? getFileUrl(updater) : null} target="_blank" className="flex align-center l-h-1">
-						{this.props.lazy ? (
-							<LazyLoad
-								placeholder={
-									<div style={{ textAlign: 'center' }}>
-										<Icon name="loading" />
-									</div>
-								}
-							>
-								{this.image()}
-							</LazyLoad>
-						) : (
-							this.image()
-						)}
+					<a
+						title={`'${file.name}' ${file.index + 1} of ${file.count}`}
+						href={this.props.link ? getFileUrl(updater) : null}
+						target="_blank"
+						className="flex align-center l-h-1 w-100 h-100"
+					>
+						{this.image()}
 					</a>
 				</div>
 			</div>
@@ -375,15 +375,31 @@ class Boxes extends Component<IProps, IState> {
 		const { zoomable, scale }: IState = this.state;
 		const { width, height, file, zoom, position }: IProps = this.props;
 
+		const img: ReactNode = (
+			<img
+				onLoad={(): void => this.resize()}
+				onError={(): void => this.resize()}
+				ref={this.img}
+				style={{ height, width, userSelect: 'none', pointerEvents: 'none', display: 'flex' }}
+				src={getFileUrl(file)}
+			/>
+		);
+
 		return (
-			<ImageZoom zoom={zoom && zoomable} scale={scale} position={position}>
-				<img
-					onLoad={(): void => this.resize()}
-					onError={(): void => this.resize()}
-					ref={this.img}
-					style={{ height, width, userSelect: 'none', pointerEvents: 'none', display: 'flex' }}
-					src={getFileUrl(file)}
-				/>
+			<ImageZoom className="w-100 h-100" zoom={zoom && zoomable} scale={scale} position={position}>
+				{this.props.lazy ? (
+					<LazyLoad
+						placeholder={
+							<div style={{ textAlign: 'center' }}>
+								<Icon name="loading" />
+							</div>
+						}
+					>
+						{img}
+					</LazyLoad>
+				) : (
+					img
+				)}
 			</ImageZoom>
 		);
 	}

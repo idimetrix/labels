@@ -1,6 +1,6 @@
-import { IFile } from '~/models';
+import { IEvent, IFile } from '~/models';
 
-export interface IFileData {
+export interface IFileState {
 	readonly error: string;
 	readonly loading: boolean;
 	readonly offset: number;
@@ -9,19 +9,27 @@ export interface IFileData {
 	readonly files: IFile[];
 }
 
+export interface IEventState {
+	readonly error: string;
+	readonly loading: boolean;
+	readonly offset: number;
+	readonly limit: number;
+	readonly total: number;
+	readonly events: IEvent[];
+}
+
 export interface IApiState {
-	readonly images?: IFileData;
-	readonly locks?: IFileData;
-	readonly views?: IFileData;
+	readonly images?: IFileState;
+	readonly locks?: IFileState;
+	readonly views?: IFileState;
+	readonly events?: IEventState;
 }
 
 // --- Image
 
 export interface IImageData {
-	readonly id: string;
+	readonly hash: string;
 	readonly position: number;
-	readonly search?: string;
-	readonly filter?: string;
 }
 
 export interface IImageAction {
@@ -34,12 +42,37 @@ export interface IImageAction {
 export interface IImagesData {
 	readonly offset: number;
 	readonly limit: number;
+	readonly event: string;
 	readonly search?: string;
-	readonly filter?: string;
+	readonly filters?: any;
 }
 
 export interface IImagesAction {
 	readonly payload: IImagesData;
+	readonly type: string;
+}
+
+// --- Event
+
+export interface IEventData {
+	readonly id: string;
+}
+
+export interface IEventAction {
+	readonly payload: IEventState;
+	readonly type: string;
+}
+
+// --- Events
+
+export interface IEventsData {
+	readonly offset: number;
+	readonly limit: number;
+	readonly search?: string;
+}
+
+export interface IEventsAction {
+	readonly payload: IEventsData;
 	readonly type: string;
 }
 
